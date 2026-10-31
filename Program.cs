@@ -10,6 +10,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<DeskService>();
 
+builder.Services.AddHttpClient<Backend.Clients.DeskClient>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
