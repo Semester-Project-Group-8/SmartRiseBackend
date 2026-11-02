@@ -4,5 +4,5 @@ public class Employee
     public string Name { get; set; }
     public string Email { get; set; }
     public string PWD_hash { get; set; }
-    public DateOnly DateOfBirth { get; set; } // may be changing this to DateTime
+    public DateOnly DateOfBirth { get; set; }
 }
