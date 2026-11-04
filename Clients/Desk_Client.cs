@@ -22,19 +22,41 @@ public class DeskClient
     public async Task<List<string>?> GetAllDeskIdsAsync()
     {
         var url = $"{_baseUrl}api/v2/{_apiKey}/desks";
-        return await _httpClient.GetFromJsonAsync<List<string>>(url);
+        try 
+        {
+            return await _httpClient.GetFromJsonAsync<List<string>>(url);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error while getting desk ids", ex);
+        }
+
     }
 
     public async Task<DeskDetails?> GetDeskDetailsAsync(string deskId)
     {
         var url = $"{_baseUrl}api/v2/{_apiKey}/desks/{deskId}";
-        return await _httpClient.GetFromJsonAsync<DeskDetails>(url);
+        try 
+        {
+            return await _httpClient.GetFromJsonAsync<DeskDetails>(url);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error while getting desk details for deskId: {deskId}", ex);
+        }
     }
 
     public async Task<DeskState?> GetDeskStateAsync(string deskId)
     {
         var url = $"{_baseUrl}api/v2/{_apiKey}/desks/{deskId}/state";
-        return await _httpClient.GetFromJsonAsync<DeskState>(url);
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<DeskState>(url);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error while getting desk state for deskId: {deskId}", ex);
+        }
     }
 
     public async Task<bool> SetDeskPositionAsync(string deskId, int positionMm)
@@ -43,6 +65,13 @@ public class DeskClient
         var target_height = new DeskPosition { PositionMm = positionMm };
 
         var response = await _httpClient.PutAsJsonAsync(url, target_height);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error while setting desk position for deskId: {deskId}", ex);
+        }
     }
 }
