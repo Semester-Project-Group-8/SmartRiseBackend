@@ -1,5 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Backend.Services;
-
+using Backend.Database;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,6 +12,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<DeskService>();
 
 builder.Services.AddHttpClient<Backend.Clients.DeskClient>();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 
 var app = builder.Build();
 
