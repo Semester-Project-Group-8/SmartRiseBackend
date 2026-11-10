@@ -24,7 +24,7 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetUser(Guid id)
     {
         var user = await _userService.GetAsync(id);
@@ -82,7 +82,7 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpPatch("{id}/presets")]
+    [HttpPatch("{id:guid}/presets")]
     public async Task<IActionResult> UpdatePresets(Guid id, [FromBody] Preset preset)
     {
         if (preset == null)
@@ -99,7 +99,7 @@ public class UserController : ControllerBase
         return Ok(new { Message = "Presets updated successfully." });
     }
 
-    [HttpPatch("{id}/approve")]
+    [HttpPatch("{id:guid}/approve")]
     public async Task<IActionResult> ApproveUser(Guid id)
     {
         var success = await _userService.ApproveAsync(id);
@@ -111,7 +111,7 @@ public class UserController : ControllerBase
         return Ok(new { Message = "User approved successfully." });
     }
 
-    [HttpPatch("{id}/reject")]
+    [HttpPatch("{id:guid}/reject")]
     public async Task<IActionResult> RejectUser(Guid id)
     {
         var success = await _userService.RejectAsync(id);
@@ -123,7 +123,7 @@ public class UserController : ControllerBase
         return Ok(new { Message = "User rejected successfully." });
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         var success = await _userService.DeleteAsync(id);
