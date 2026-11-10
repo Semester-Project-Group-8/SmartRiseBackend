@@ -24,8 +24,8 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetUser([FromQuery] string id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUser(Guid id)
     {
         var user = await _userService.GetAsync(id);
         if (user == null)

@@ -63,6 +63,8 @@ namespace Backend.Database
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.PreferredHeight).HasColumnName("preferred_height");
                 entity.Property(e => e.CompanyHeight).HasColumnName("company_height");
+                entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
+                entity.Property(e => e.DepartmentId).HasColumnName("department_id");
 
                 entity.HasOne(e => e.Employee)
                       .WithOne(e => e.Desk)

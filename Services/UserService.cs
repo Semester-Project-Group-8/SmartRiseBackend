@@ -23,11 +23,11 @@ public class UserService
             .ToListAsync();
     }
 
-    public async Task<Employee?> GetAsync(string id)
+    public async Task<Employee?> GetAsync(Guid id)
     {
         return await _context.Employees
             .Include(e => e.Desk)
-            .FirstOrDefaultAsync(e => Equals(e.Id, id));
+            .FirstOrDefaultAsync(e => e.Id == id);
     }
 
     public async Task<List<Employee>> GetPendingAsync()
@@ -40,13 +40,29 @@ public class UserService
 
     public async Task<Employee> CreateAsync(Employee employee)
     {
+        var existingEmployee = await _context.Employees
+            .FirstOrDefaultAsync(e => e.Email == employee.Email);
+
+        if (existingEmployee != null)
+        {
+            existingEmployee.Name = string.IsNullOrWhiteSpace(employee.Name) ? existingEmployee.Name : employee.Name;
+            existingEmployee.DateOfBirth = employee.DateOfBirth != DateOnly.MinValue ? employee.DateOfBirth : existingEmployee.DateOfBirth;
+            existingEmployee.PasswordHash = string.IsNullOrWhiteSpace(employee.PasswordHash) ? existingEmployee.PasswordHash : employee.PasswordHash;
+            existingEmployee.Role = string.IsNullOrWhiteSpace(employee.Role) ? existingEmployee.Role : employee.Role;
+            existingEmployee.AccountStatus = string.IsNullOrWhiteSpace(employee.AccountStatus) ? existingEmployee.AccountStatus : "active";
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Updated preapproved user {Email} with ID {Id}", existingEmployee.Email, existingEmployee.Id);
+            return existingEmployee;
+        }
+
         if (employee.Id == Guid.Empty)
         {
             employee.Id = Guid.NewGuid();
         }
         if (string.IsNullOrEmpty(employee.AccountStatus))
         {
-            employee.AccountStatus = "pending";
+            employee.AccountStatus = "inactive";
         }
         if (string.IsNullOrEmpty(employee.Role))
         {
@@ -107,8 +123,7 @@ public class UserService
         var employee = await _context.Employees.FindAsync(id);
         if (employee == null) return false;
 
-        employee.AccountStatus = "inactive";
-        await _context.SaveChangesAsync();
+        await DeleteAsync(id);
 
         _logger.LogInformation("Rejected user {Id}", id);
         return true;
@@ -116,18 +131,46 @@ public class UserService
 
     public async Task<int> ApproveBatchAsync(List<string> emails)
     {
-        var employees = await _context.Employees
-            .Where(e => emails.Contains(e.Email))
-            .ToListAsync();
-
-        foreach (var emp in employees)
+        if (emails == null || !emails.Any())
         {
-            emp.AccountStatus = "active";
+            return 0;
+        }
+
+        int processedCount = 0;
+
+        foreach (var email in emails)
+        {
+            if (string.IsNullOrWhiteSpace(email)) continue;
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.Email == email);
+
+            if (employee != null)
+            {
+                employee.AccountStatus = "active";
+                processedCount++;
+            }
+            else
+            {
+                var newEmployee = new Employee
+                {
+                    Id = Guid.NewGuid(),
+                    Email = email.Trim(),
+                    AccountStatus = "active",
+                    Name = "",
+                    Role = "default",
+                    DateOfBirth = DateOnly.MinValue,
+                    PasswordHash = ""
+                };
+
+                _context.Employees.Add(newEmployee);
+                processedCount++;
+            }
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Approved batch of {Count} users", employees.Count);
-        return employees.Count;
+        _logger.LogInformation("Batch approved/created {Count} users", processedCount);
+        return processedCount;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
