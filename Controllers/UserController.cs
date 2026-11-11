@@ -42,7 +42,7 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
-    [HttpPost]
+    [HttpPost("employee")]
     public async Task<IActionResult> CreateUser([FromBody] Employee employee)
     {
         if (!ModelState.IsValid)
@@ -58,6 +58,25 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user");
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+    [HttpPost("admin")]
+    public async Task<IActionResult> CreateAdmin([FromBody] Admin admin)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var createdUser = await _userService.CreateAsync(admin);
+            return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating superuser");
             return BadRequest(new { Message = ex.Message });
         }
     }

@@ -8,12 +8,14 @@ namespace Backend.Services;
 public class UserService
 {
     private readonly AppDbContext _context;
+    private readonly PasswordService _passwordService;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(AppDbContext context, ILogger<UserService> logger)
+    public UserService(AppDbContext context, ILogger<UserService> logger, PasswordService passwordService)
     {
         _context = context;
         _logger = logger;
+        _passwordService = passwordService;
     }
 
     public async Task<List<Employee>> ListAsync()
@@ -47,7 +49,10 @@ public class UserService
         {
             existingEmployee.Name = string.IsNullOrWhiteSpace(employee.Name) ? existingEmployee.Name : employee.Name;
             existingEmployee.DateOfBirth = employee.DateOfBirth != DateOnly.MinValue ? employee.DateOfBirth : existingEmployee.DateOfBirth;
-            existingEmployee.PasswordHash = string.IsNullOrWhiteSpace(employee.PasswordHash) ? existingEmployee.PasswordHash : employee.PasswordHash;
+            if (string.IsNullOrWhiteSpace(existingEmployee.PasswordHash) && !string.IsNullOrEmpty(employee.PasswordHash))
+            {
+                employee.PasswordHash = _passwordService.HashPassword(employee, employee.PasswordHash);
+            }
             existingEmployee.Role = string.IsNullOrWhiteSpace(employee.Role) ? existingEmployee.Role : employee.Role;
             existingEmployee.AccountStatus = string.IsNullOrWhiteSpace(employee.AccountStatus) ? existingEmployee.AccountStatus : "active";
 
@@ -68,12 +73,37 @@ public class UserService
         {
             employee.Role = "default";
         }
-
+        if (!string.IsNullOrEmpty(employee.PasswordHash))
+        {
+            employee.PasswordHash = _passwordService.HashPassword(employee, employee.PasswordHash);
+        }
         _context.Employees.Add(employee);
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Created user {Email} with ID {Id}", employee.Email, employee.Id);
         return employee;
+    }
+
+    public async Task<Admin> CreateAsync(Admin admin)
+    {
+        if(await _context.Employees.AnyAsync(e => e.Email == admin.Email) || await _context.Admins.AnyAsync(e => e.Email == admin.Email))
+        {
+            _logger.LogInformation("Superuser creation failed. Email is already assigned to another user");
+            return admin;
+        }
+        if (admin.Id == Guid.Empty)
+        {
+            admin.Id = Guid.NewGuid();
+        }
+        if (!string.IsNullOrEmpty(admin.PasswordHash))
+        {
+            admin.PasswordHash = _passwordService.HashPassword(admin, admin.PasswordHash);
+        }
+        _context.Admins.Add(admin);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Created superuser {Email} with ID {Id}", admin.Email, admin.Id);
+        return admin;
     }
 
     public async Task<bool> UpdatePresetsAsync(Guid id, Preset preset)
