@@ -15,6 +15,7 @@ builder.Services.AddScoped<LoginService>();
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<DeskService>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddHttpClient<Backend.Clients.DeskClient>();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
