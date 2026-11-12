@@ -57,6 +57,21 @@ CREATE TABLE desk(
     CONSTRAINT fk_desk_department FOREIGN KEY (department_id) REFERENCES department(id)
 );
 
+CREATE TABLE ticket(
+    id UUID NOT NULL DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description_text TEXT NOT NULL,
+    report_time DATETIME NOT NULL,
+
+    employee_id UUID,
+    desk_id UUID,
+
+    CONSTRAINT pk_ticket PRIMARY KEY (id),
+
+    CONSTRAINT fk_ticket_employee FOREIGN KEY (employee_id) REFERENCES employee(id),
+    CONSTRAINT fk_ticket_desk FOREIGN KEY (desk_id) REFERENCES desk(id)
+);
+
 CREATE TABLE works_in(
     employee_id UUID,
     department_id UUID,

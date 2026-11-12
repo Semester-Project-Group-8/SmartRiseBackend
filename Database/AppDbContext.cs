@@ -13,6 +13,8 @@ namespace Backend.Database
         public DbSet<Desk> Desks => Set<Desk>();
         public DbSet<WorksIn> WorksIns => Set<WorksIn>();
 
+        public DbSet<Ticket> Tickets => Set<Ticket>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)//tells efcore what our models map to into the db
         {
             //needed to keep to postgresql and csharp naming conventions
