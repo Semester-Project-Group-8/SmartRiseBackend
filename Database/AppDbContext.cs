@@ -24,7 +24,7 @@ namespace Backend.Database
                 entity.ToTable("admin");
                 //mapping collumns
                 entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth");
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 entity.Property(e => e.Name).HasColumnName("name");
                 entity.Property(e => e.Email).HasColumnName("email");
                 entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
@@ -37,7 +37,7 @@ namespace Backend.Database
             modelBuilder.Entity<Department>(entity =>
             {
                 entity.ToTable("department");
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 entity.Property(e => e.Major).HasColumnName("major");
                 entity.Property(e => e.StartTime).HasColumnName("start_time");
                 entity.Property(e => e.EndTime).HasColumnName("end_time");
@@ -50,7 +50,7 @@ namespace Backend.Database
             {
                 entity.ToTable("employee");
                 entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth");
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 entity.Property(e => e.Name).HasColumnName("name");
                 entity.Property(e => e.Email).HasColumnName("email");
                 entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
@@ -61,7 +61,7 @@ namespace Backend.Database
             {
                 entity.ToTable("desk");
                 entity.Property(e => e.Minor).HasColumnName("minor");
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 entity.Property(e => e.PreferredHeight).HasColumnName("preferred_height");
                 entity.Property(e => e.CompanyHeight).HasColumnName("company_height");
                 entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
@@ -74,10 +74,10 @@ namespace Backend.Database
             modelBuilder.Entity<Ticket>(entity =>
             {
                 entity.ToTable("ticket");
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 entity.Property(e => e.Title).HasColumnName("title");
                 entity.Property(e => e.Description_Text).HasColumnName("description_text");
-                entity.Property(e => e.ReportTime).HasColumnName("report_Time");
+                entity.Property(e => e.ReportTime).HasColumnName("report_time").HasDefaultValueSql("gen_random_uuid()");
                 entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
                 entity.Property(e => e.DeskId).HasColumnName("desk_id");
 

@@ -61,7 +61,7 @@ CREATE TABLE ticket(
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description_text TEXT NOT NULL,
-    report_time DATETIME NOT NULL,
+    report_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     employee_id UUID,
     desk_id UUID,
