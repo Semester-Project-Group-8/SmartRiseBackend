@@ -12,7 +12,6 @@ namespace Backend.Database
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<Desk> Desks => Set<Desk>();
         public DbSet<WorksIn> WorksIns => Set<WorksIn>();
-
         public DbSet<Ticket> Tickets => Set<Ticket>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)//tells efcore what our models map to into the db
@@ -72,6 +71,25 @@ namespace Backend.Database
                       .WithOne(e => e.Desk)
                       .HasForeignKey<Desk>(e => e.EmployeeId);
             });
+            modelBuilder.Entity<Ticket>(entity =>
+            {
+                entity.ToTable("ticket");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Title).HasColumnName("title");
+                entity.Property(e => e.Description_Text).HasColumnName("description_text");
+                entity.Property(e => e.ReportTime).HasColumnName("report_Time");
+                entity.Property(e => e.EmployeeId).HasColumnName("employee_id");
+                entity.Property(e => e.DeskId).HasColumnName("desk_id");
+
+                entity.HasOne(t => t.Employee)
+                      .WithOne(e => e.Ticket)
+                      .HasForeignKey<Ticket>(t => t.EmployeeId);
+
+                entity.HasOne(t => t.Desk)
+                      .WithOne(d => d.Ticket)
+                      .HasForeignKey<Ticket>(t => t.DeskId);
+            });
+
             modelBuilder.Entity<WorksIn>(entity =>
             {
 
