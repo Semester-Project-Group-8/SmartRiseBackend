@@ -84,20 +84,25 @@ public class UserService
         return employee;
     }
 
-    public async Task<Admin> CreateAsync(Admin admin)
+    public async Task<Admin?> CreateAsync(Admin admin)
     {
         if(await _context.Employees.AnyAsync(e => e.Email == admin.Email) || await _context.Admins.AnyAsync(e => e.Email == admin.Email))
         {
-            _logger.LogInformation("Superuser creation failed. Email is already assigned to another user");
-            return admin;
+            _logger.LogInformation("Superuser creation failed. Email is already assigned to another user.");
+            return null;
         }
         if (admin.Id == Guid.Empty)
         {
             admin.Id = Guid.NewGuid();
         }
-        if (!string.IsNullOrEmpty(admin.PasswordHash))
+        if (!string.IsNullOrWhiteSpace(admin.PasswordHash))
         {
             admin.PasswordHash = _passwordService.HashPassword(admin, admin.PasswordHash);
+        }
+        else
+        {
+            _logger.LogInformation("Superuser creation failed. Password is required.");
+            return null;
         }
         _context.Admins.Add(admin);
         await _context.SaveChangesAsync();
