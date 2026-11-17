@@ -134,6 +134,18 @@ public class UserController : ControllerBase
 
         return Ok(new { Message = "User deleted successfully." });
     }
+
+    public async Task<IActionResult> GetDesk(Guid id)
+    {
+        var desk = await _userService.GetDesk(id);
+
+        if (desk is null)
+        {
+           return NotFound(new  { Message = "User's desk not found." }); 
+        }
+
+        return Ok(desk);
+    }
 }
 
 public class Preset

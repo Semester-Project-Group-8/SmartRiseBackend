@@ -192,4 +192,22 @@ public class UserService
         _logger.LogInformation("Deleted user {Id}", id);
         return true;
     }
+
+    public async Task<object?> GetDesk(Guid id)
+    {
+        var user = await _context.Employees
+            .Include(e => e.Desk)
+            .ThenInclude(d => d.Department)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (user?.Desk?.Department == null) return null;
+
+        var desk = new
+        {
+            user.Desk.Minor,
+            user.Desk.Department.Major
+        };
+
+        return desk;
+    }
 }
