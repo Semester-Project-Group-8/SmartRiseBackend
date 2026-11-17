@@ -135,6 +135,7 @@ public class UserController : ControllerBase
         return Ok(new { Message = "User deleted successfully." });
     }
 
+    [HttpGet("{id:guid}/desk")]
     public async Task<IActionResult> GetDesk(Guid id)
     {
         var desk = await _userService.GetDesk(id);
