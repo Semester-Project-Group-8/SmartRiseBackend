@@ -1,4 +1,6 @@
 ﻿using Backend.Database;
+using Backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
@@ -13,39 +15,39 @@ public class ReportService
         _logger = logger;
     }
     
-    public async Task<List<Report>> List()
+    public async Task<List<Ticket>> List()
     {
-        return await _context.Report
+        return await _context.Tickets
             .Include(r => r.Employee)
             .Include(r => r.Desk)
             .ToListAsync();
     }
 
-    public async Task<Report?> Get(int id)
+    public async Task<Ticket?> Get(Guid id)
     {
-        return await _context.Report
+        return await _context.Tickets
             .Include(r => r.Employee)
             .Include(r => r.Desk)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
-    public async Task<Report> Create(Report report)
+    public async Task<Ticket> Create(Ticket report)
     {
-        _context.Report.Add(report);
+        _context.Tickets.Add(report);
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Created report with ID {Id}", report.Id);
         return report;
     }
 
-    public async Task<bool> Delete(int id)
+    public async Task<bool> Delete(Guid id)
     {
-        var report = await _context.Report
+        var report = await _context.Tickets
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (report == null) return false;
 
-        _context.Report.Remove(report);
+        _context.Tickets.Remove(report);
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted report {Id}", id);

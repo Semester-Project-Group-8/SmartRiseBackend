@@ -1,4 +1,5 @@
-﻿using Backend.Services;
+﻿using Backend.Models;
+using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
@@ -23,8 +24,8 @@ public class ReportController : ControllerBase
         return Ok(reports);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> Get(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id)
     {
         var user = await _service.Get(id);
         if (user == null)
@@ -35,7 +36,7 @@ public class ReportController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Report report)
+    public async Task<IActionResult> Create([FromBody] Ticket report)
     {
         if (!ModelState.IsValid)
         {
@@ -50,12 +51,12 @@ public class ReportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user");
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
     
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var success = await _service.Delete(id);
         if (!success)
