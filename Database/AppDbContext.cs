@@ -61,6 +61,7 @@ namespace Backend.Database
             {
                 entity.ToTable("desk");
                 entity.Property(e => e.Minor).HasColumnName("minor");
+                entity.Property(e => e.ExternalDeskId).HasColumnName("external_desk_id");
                 entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
                 entity.Property(e => e.PreferredHeight).HasColumnName("preferred_height");
                 entity.Property(e => e.CompanyHeight).HasColumnName("company_height");

@@ -1,12 +1,15 @@
 using Backend.Models;
 using Backend.Models.DeskApi;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend.Controllers;
 
 [Route("api/desks")]
 [ApiController]
+[Authorize]
 public class DeskController : ControllerBase
 {
     private readonly DeskService _deskService;
@@ -16,27 +19,40 @@ public class DeskController : ControllerBase
         _deskService = deskService;
     }
 
-    [HttpPost("Detect")]
-    public async Task<IActionResult> Detect([FromBody] DeskDetection detection)
+    [HttpPost("detect")]
+    public async Task<IActionResult> Detect([FromBody] string state)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        if (string.IsNullOrWhiteSpace(detection.BeaconName) || string.IsNullOrWhiteSpace(detection.UserId))
+        if (string.IsNullOrWhiteSpace(state))
         {
-            return BadRequest(new { Message = "BeaconName and UserId are required." });
+            return BadRequest(new { Message = "State is required." });
         }
 
-        var result = await _deskService.ProcessDetectionAsync(detection);
+        state = state.Trim().ToLowerInvariant();
+
+        if (state != "entered" && state != "exited")
+        {
+            return BadRequest(new { Message = "State must be 'entered' or 'exited'." });
+        }
+
+        var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _deskService.ProcessDetectionAsync(email, state);
 
         if (!result)
         {
             return StatusCode(500, new { Message = "Failed" });
         }
 
-        return Ok(new { Message = "Desk detected successfully." });
+        return Ok(new { Message = $"Desk {state} successfully." });
     }
 
     [HttpGet]
