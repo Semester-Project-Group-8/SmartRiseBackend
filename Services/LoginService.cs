@@ -15,31 +15,29 @@ public class LoginService
 {
     private readonly ILogger<LoginService> _logger;
     private readonly AppDbContext _dbContext;
-
-    public LoginService(
-        ILogger<LoginService> logger,
-        AppDbContext dbContext)
+    private readonly PasswordService _passwordService;
+    public LoginService(ILogger<LoginService> logger, AppDbContext dbContext, PasswordService passwordService)
     {
         _logger = logger;
         _dbContext = dbContext;
+        _passwordService = passwordService;
     }
 
     public async Task<string?> Login(LoginRequest request)
     {
-        var user = await _dbContext.Employees.FirstOrDefaultAsync(e => e.Email == request.UserMail);
-
-        if (user == null)
+        Employee? employee = await _dbContext.Employees.FirstOrDefaultAsync(e => e.Email == request.UserMail);
+        Admin? admin = await _dbContext.Admins.FirstOrDefaultAsync(a => a.Email == request.UserMail);
+        if ((employee != null && _passwordService.VerifyPassword(employee, employee.PasswordHash, request.Password)) || (admin != null && _passwordService.VerifyPassword(admin, admin.PasswordHash, request.Password)))
+        {
+            _logger.LogInformation($"User {request.UserMail} logged in successfully.");
+            return GenerateJwtToken(request.UserMail);
+        }
+        else if(employee==null && admin==null)
         {
             _logger.LogWarning($"Login failed: User with email {request.UserMail} not found.");
             return null;
         }
-
-        if (user.PasswordHash == request.Password)
-        {
-            _logger.LogInformation($"User {request.UserMail} logged in successfully.");
-            return GenerateJwtToken(user.Email);
-        }
-
+        _logger.LogInformation($"User {request.UserMail} login failed.");
         return null;
     }
 
