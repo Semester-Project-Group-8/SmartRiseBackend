@@ -1,12 +1,15 @@
 using Backend.Models;
 using Backend.Models.DeskApi;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend.Controllers;
 
 [Route("api/desks")]
 [ApiController]
+[Authorize]
 public class DeskController : ControllerBase
 {
     private readonly DeskService _deskService;
@@ -16,7 +19,7 @@ public class DeskController : ControllerBase
         _deskService = deskService;
     }
 
-    [HttpPost("Detect")]
+    [HttpPost("detect")]
     public async Task<IActionResult> Detect([FromBody] DeskDetection detection)
     {
         if (!ModelState.IsValid)
@@ -24,12 +27,18 @@ public class DeskController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        if (string.IsNullOrWhiteSpace(detection.BeaconName) || string.IsNullOrWhiteSpace(detection.UserId))
+        if (detection.BeaconId < 0)
         {
-            return BadRequest(new { Message = "BeaconName and UserId are required." });
+            return BadRequest(new { Message = "BeaconId is required." });
         }
 
-        var result = await _deskService.ProcessDetectionAsync(detection);
+        var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _deskService.ProcessDetectionAsync(email, detection);
 
         if (!result)
         {

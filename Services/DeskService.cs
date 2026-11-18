@@ -22,10 +22,47 @@ public class DeskService
         _deskClient = deskClient;
     }
 
-    public async Task<bool> ProcessDetectionAsync(DeskDetection detection)
+    public async Task<bool> ProcessDetectionAsync(string email, DeskDetection detection)
     {
-        _logger.LogInformation("Desk '{Beacon}' detected for user '{User}'", 
-            detection.BeaconName, detection.UserId);
+        var employee = await _dbContext.Employees
+            .Include(e => e.Desk)
+            .FirstOrDefaultAsync(e => e.Email == email);
+
+        var desk = employee?.Desk;
+        if (employee == null || desk == null)
+        {
+            _logger.LogWarning("No desk is assigned to user '{User}'.", email);
+            return false;
+        }
+
+        if (desk.BeaconId != detection.BeaconId)
+        {
+            _logger.LogWarning(
+                "Beacon '{BeaconId}' does not belong to desk '{DeskId}'.",
+                detection.BeaconId,
+                desk.Id);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(desk.ExternalDeskId))
+        {
+            _logger.LogWarning("Desk '{DeskId}' has no external API ID.", desk.Id);
+            return false;
+        }
+
+        var moved = await _deskClient.SetDeskPositionAsync(
+            desk.ExternalDeskId,
+            (int)desk.PreferredHeight);
+
+        if (!moved)
+        {
+            _logger.LogWarning("Failed to move desk '{DeskId}'.", desk.Id);
+            return false;
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Desk '{DeskId}' moved for user '{User}'.", desk.Id, email);
 
         return true;
     }
