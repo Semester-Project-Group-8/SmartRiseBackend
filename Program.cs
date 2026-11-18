@@ -15,6 +15,7 @@ builder.Services.AddScoped<LoginService>();
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<DeskService>();
+builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<UserService>();
 
 builder.Services.AddHttpClient<Backend.Clients.DeskClient>();

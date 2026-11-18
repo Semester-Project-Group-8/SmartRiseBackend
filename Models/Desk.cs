@@ -12,5 +12,6 @@ public class Desk
     public Guid DepartmentId { get; set; }
     public Employee? Employee { get; set; }
     public Department? Department { get; set; }
+    public Ticket? Ticket { get; set; }
 }
 
