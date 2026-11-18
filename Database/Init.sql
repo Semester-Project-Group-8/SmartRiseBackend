@@ -45,7 +45,6 @@ CREATE TABLE employee(
 CREATE TABLE desk(
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     minor INT NOT NULL,
-    beacon_id INT NOT NULL,
     external_desk_id VARCHAR(17) NOT NULL,
     preferred_height FLOAT NOT NULL,
     company_height FLOAT NOT NULL,
@@ -54,7 +53,6 @@ CREATE TABLE desk(
     department_id UUID,
 
     CONSTRAINT pk_desk PRIMARY KEY (id),
-    CONSTRAINT uq_desk_beacon_id UNIQUE (beacon_id),
     CONSTRAINT uq_desk_external_desk_id UNIQUE (external_desk_id),
 
     CONSTRAINT fk_desk_employee FOREIGN KEY (employee_id) REFERENCES employee(id),

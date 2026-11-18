@@ -20,16 +20,23 @@ public class DeskController : ControllerBase
     }
 
     [HttpPost("detect")]
-    public async Task<IActionResult> Detect([FromBody] DeskDetection detection)
+    public async Task<IActionResult> Detect([FromBody] string state)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        if (detection.BeaconId < 0)
+        if (string.IsNullOrWhiteSpace(state))
         {
-            return BadRequest(new { Message = "BeaconId is required." });
+            return BadRequest(new { Message = "State is required." });
+        }
+
+        state = state.Trim().ToLowerInvariant();
+
+        if (state != "entered" && state != "exited")
+        {
+            return BadRequest(new { Message = "State must be 'entered' or 'exited'." });
         }
 
         var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
@@ -38,14 +45,14 @@ public class DeskController : ControllerBase
             return Unauthorized();
         }
 
-        var result = await _deskService.ProcessDetectionAsync(email, detection);
+        var result = await _deskService.ProcessDetectionAsync(email, state);
 
         if (!result)
         {
             return StatusCode(500, new { Message = "Failed" });
         }
 
-        return Ok(new { Message = "Desk detected successfully." });
+        return Ok(new { Message = $"Desk {state} successfully." });
     }
 
     [HttpGet]

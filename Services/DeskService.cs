@@ -22,7 +22,7 @@ public class DeskService
         _deskClient = deskClient;
     }
 
-    public async Task<bool> ProcessDetectionAsync(string email, DeskDetection detection)
+    public async Task<bool> ProcessDetectionAsync(string email, string state)
     {
         var employee = await _dbContext.Employees
             .Include(e => e.Desk)
@@ -35,24 +35,19 @@ public class DeskService
             return false;
         }
 
-        if (desk.BeaconId != detection.BeaconId)
-        {
-            _logger.LogWarning(
-                "Beacon '{BeaconId}' does not belong to desk '{DeskId}'.",
-                detection.BeaconId,
-                desk.Id);
-            return false;
-        }
-
         if (string.IsNullOrWhiteSpace(desk.ExternalDeskId))
         {
             _logger.LogWarning("Desk '{DeskId}' has no external API ID.", desk.Id);
             return false;
         }
 
+        var height = state == "entered"
+            ? desk.PreferredHeight
+            : desk.CompanyHeight;
+
         var moved = await _deskClient.SetDeskPositionAsync(
             desk.ExternalDeskId,
-            (int)desk.PreferredHeight);
+            (int)height);
 
         if (!moved)
         {
