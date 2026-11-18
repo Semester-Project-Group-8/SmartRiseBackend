@@ -10,5 +10,6 @@ public class Employee
     public string AccountStatus { get; set; } = "";
     public string Role { get; set; } = "";
     public Desk? Desk { get; set; }
+    public Ticket? Ticket { get; set; }
     public ICollection<WorksIn> WorksIn { get; set; } = new List<WorksIn>();
 }
