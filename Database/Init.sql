@@ -44,7 +44,7 @@ CREATE TABLE employee(
 
 CREATE TABLE desk(
     id UUID NOT NULL DEFAULT gen_random_uuid(),
-    minor INT NOT NULL,
+    minor INT,
     external_desk_id VARCHAR(17) NOT NULL,
     preferred_height FLOAT NOT NULL,
     company_height FLOAT NOT NULL,
