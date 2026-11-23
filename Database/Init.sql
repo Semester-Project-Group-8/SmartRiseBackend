@@ -38,7 +38,7 @@ CREATE TABLE employee(
 
     CONSTRAINT pk_employee PRIMARY KEY(id),
 	CONSTRAINT uq_employee_email UNIQUE(email),
-	CONSTRAINT chk_employee_account_status CHECK(account_status IN('active', 'inactive')),
+	CONSTRAINT chk_employee_account_status CHECK(account_status IN('active', 'pending')),
     CONSTRAINT chk_employee_role CHECK(role IN('default', 'cleaner'))
 );
 
