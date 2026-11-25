@@ -18,45 +18,26 @@ public class UserService
         _passwordService = passwordService;
     }
 
-    public async Task<List<GetUserDto>> ListAsync()
+    public async Task<List<Employee>> ListAsync()
     {
-        var employees = await _context.Employees
-            .AsNoTracking()
+        return await _context.Employees
+            .Include(e => e.Desk)
             .ToListAsync();
-
-        return employees.Select(MapToDto).ToList();
     }
 
-    public async Task<GetUserDto?> GetAsync(Guid id)
+    public async Task<Employee?> GetAsync(Guid id)
     {
-        var employee = await _context.Employees
-            .AsNoTracking()
+        return await _context.Employees
+            .Include(e => e.Desk)
             .FirstOrDefaultAsync(e => e.Id == id);
-
-        return employee == null ? null : MapToDto(employee);
     }
 
-    public async Task<List<GetUserDto>> GetPendingAsync()
+    public async Task<List<Employee>> GetPendingAsync()
     {
-        var employees = await _context.Employees
-            .AsNoTracking()
-            .Where(e => e.AccountStatus == "pending")
+        return await _context.Employees
+            .Include(e => e.Desk)
+            .Where(e => e.AccountStatus == "pending" || e.AccountStatus == "inactive")
             .ToListAsync();
-
-        return employees.Select(MapToDto).ToList();
-    }
-
-    private static GetUserDto MapToDto(Employee employee)
-    {
-        return new GetUserDto
-        {
-            Id = employee.Id,
-            Name = employee.Name,
-            DateOfBirth = employee.DateOfBirth,
-            Email = employee.Email,
-            AccountStatus = employee.AccountStatus,
-            Role = employee.Role
-        };
     }
 
     public async Task<Employee> CreateAsync(Employee employee)
@@ -86,7 +67,6 @@ public class UserService
         }
         if (string.IsNullOrEmpty(employee.AccountStatus))
         {
-            employee.AccountStatus = "pending";
         }
         if (string.IsNullOrEmpty(employee.Role))
         {
