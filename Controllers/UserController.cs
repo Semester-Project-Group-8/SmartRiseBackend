@@ -1,11 +1,13 @@
 ﻿using Backend.Models;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
 [Route("users")]
 [ApiController]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
@@ -17,9 +19,19 @@ public class UserController : ControllerBase
         _logger = logger;
     }
 
+    private bool IsAdmin()
+    {
+        return User.IsInRole("Admin");
+    }
+
     [HttpGet]
     public async Task<IActionResult> ListUsers()
     {
+        if (!IsAdmin())
+        {
+            return StatusCode(403, new { Message = "Admin privileges required." });
+        }
+
         var users = await _userService.ListAsync();
         return Ok(users);
     }
@@ -27,6 +39,11 @@ public class UserController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetUser(Guid id)
     {
+        if (!IsAdmin())
+        {
+            return StatusCode(403, new { Message = "Admin privileges required." });
+        }
+
         var user = await _userService.GetAsync(id);
         if (user == null)
         {
@@ -38,6 +55,11 @@ public class UserController : ControllerBase
     [HttpGet("approval-pending")]
     public async Task<IActionResult> GetPendingUsers()
     {
+        if (!IsAdmin())
+        {
+            return StatusCode(403, new { Message = "Admin privileges required." });
+        }
+
         var users = await _userService.GetPendingAsync();
         return Ok(users);
     }
@@ -58,9 +80,10 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user");
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
+
     [HttpPost("admin")]
     public async Task<IActionResult> CreateAdmin([FromBody] Admin admin)
     {
@@ -72,18 +95,24 @@ public class UserController : ControllerBase
         try
         {
             var createdUser = await _userService.CreateAsync(admin);
+            if (createdUser is null) return  BadRequest(new { Message = "User could not be created." });
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating superuser");
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
 
     [HttpPost("approve")]
-    public async Task<IActionResult> ApproveBatch([FromBody] List<string> emails)
+    public async Task<IActionResult> ApproveBatch([FromBody] List<string>? emails)
     {
+        if (!IsAdmin())
+        {
+            return StatusCode(403, new { Message = "Admin privileges required." });
+        }
+
         if (emails == null || !emails.Any())
         {
             return BadRequest(new { Message = "Email list cannot be empty." });
@@ -97,12 +126,12 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error approving batch of users");
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
 
     [HttpPatch("{id:guid}/presets")]
-    public async Task<IActionResult> UpdatePresets(Guid id, [FromBody] Preset preset)
+    public async Task<IActionResult> UpdatePresets(Guid id, [FromBody] Preset? preset)
     {
         if (preset == null)
         {
@@ -121,6 +150,11 @@ public class UserController : ControllerBase
     [HttpPatch("{id:guid}/approve")]
     public async Task<IActionResult> ApproveUser(Guid id)
     {
+        if (!IsAdmin())
+        {
+            return StatusCode(403, new { Message = "Admin privileges required." });
+        }
+
         var success = await _userService.ApproveAsync(id);
         if (!success)
         {
@@ -133,6 +167,11 @@ public class UserController : ControllerBase
     [HttpPatch("{id:guid}/reject")]
     public async Task<IActionResult> RejectUser(Guid id)
     {
+        if (!IsAdmin())
+        {
+            return StatusCode(403, new { Message = "Admin privileges required." });
+        }
+
         var success = await _userService.RejectAsync(id);
         if (!success)
         {
@@ -145,6 +184,11 @@ public class UserController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
+        if (!IsAdmin())
+        {
+            return StatusCode(403, new { Message = "Admin privileges required." });
+        }
+
         var success = await _userService.DeleteAsync(id);
         if (!success)
         {
@@ -161,7 +205,7 @@ public class UserController : ControllerBase
 
         if (desk is null)
         {
-           return NotFound(new  { Message = "User's desk not found." }); 
+           return NotFound(new  { Message = "User's desk not found." });
         }
 
         return Ok(desk);

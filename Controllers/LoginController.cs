@@ -1,9 +1,6 @@
-using Backend.Models;
-using Backend.Models.DeskApi;
 using Backend.Models.Login;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Backend.Controllers;
 
