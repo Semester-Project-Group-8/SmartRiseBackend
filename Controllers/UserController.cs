@@ -80,7 +80,7 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user");
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
 
@@ -95,17 +95,18 @@ public class UserController : ControllerBase
         try
         {
             var createdUser = await _userService.CreateAsync(admin);
+            if (createdUser is null) return  BadRequest(new { Message = "User could not be created." });
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating superuser");
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
 
     [HttpPost("approve")]
-    public async Task<IActionResult> ApproveBatch([FromBody] List<string> emails)
+    public async Task<IActionResult> ApproveBatch([FromBody] List<string>? emails)
     {
         if (!IsAdmin())
         {
@@ -125,12 +126,12 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error approving batch of users");
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
 
     [HttpPatch("{id:guid}/presets")]
-    public async Task<IActionResult> UpdatePresets(Guid id, [FromBody] Preset preset)
+    public async Task<IActionResult> UpdatePresets(Guid id, [FromBody] Preset? preset)
     {
         if (preset == null)
         {
