@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-[Route("api/preset")]
+[Route("api/reports")]
 [ApiController]
 public class ReportController : ControllerBase
 {
