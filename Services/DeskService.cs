@@ -228,32 +228,4 @@ public class DeskService
         return createdCount;
     }
 
-    public async Task<bool> ConfigureDeskAsync(Guid deskId, DeskConfiguration configuration)
-    {
-        var desk = await _dbContext.Desks
-            .FirstOrDefaultAsync(d => d.Id == deskId);
-
-        var departmentExists = await _dbContext.Departments
-            .AnyAsync(d => d.Id == configuration.DepartmentId);
-
-        if (desk == null || !departmentExists)
-        {
-            _logger.LogWarning(
-                "Cannot configure desk '{DeskId}'. Desk or department was not found.",
-                deskId);
-            return false;
-        }
-
-        desk.DepartmentId = configuration.DepartmentId;
-        desk.Minor = configuration.Minor;
-
-        await _dbContext.SaveChangesAsync();
-
-        _logger.LogInformation(
-            "Configured desk '{DeskId}' with department '{DepartmentId}' and minor '{Minor}'.",
-            deskId,
-            configuration.DepartmentId,
-            configuration.Minor);
-        return true;
-    }
 }

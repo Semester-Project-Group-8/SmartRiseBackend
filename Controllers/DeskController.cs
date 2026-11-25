@@ -144,29 +144,10 @@ public class DeskController : ControllerBase
 
         return Ok(new { Message = "Desk unassigned successfully." });
     }
-
     [HttpPost("sync")]
     public async Task<IActionResult> SyncDesks()
     {
         var createdCount = await _deskService.SyncDesksAsync();
         return Ok(new { CreatedCount = createdCount });
-    }
-
-    [HttpPatch("{deskId}/configuration")]
-    public async Task<IActionResult> ConfigureDesk(Guid deskId, [FromBody] DeskConfiguration configuration)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        var result = await _deskService.ConfigureDeskAsync(deskId, configuration);
-
-        if (!result)
-        {
-            return StatusCode(500, new { Message = "Failed to configure desk." });
-        }
-
-        return Ok(new { Message = "Desk configured successfully." });
     }
 }
