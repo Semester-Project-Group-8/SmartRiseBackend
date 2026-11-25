@@ -67,6 +67,7 @@ public class UserService
         }
         if (string.IsNullOrEmpty(employee.AccountStatus))
         {
+            employee.AccountStatus = "pending";
         }
         if (string.IsNullOrEmpty(employee.Role))
         {
