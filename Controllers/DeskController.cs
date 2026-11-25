@@ -144,4 +144,10 @@ public class DeskController : ControllerBase
 
         return Ok(new { Message = "Desk unassigned successfully." });
     }
+    [HttpPost("sync")]
+    public async Task<IActionResult> SyncDesks()
+    {
+        var createdCount = await _deskService.SyncDesksAsync();
+        return Ok(new { CreatedCount = createdCount });
+    }
 }

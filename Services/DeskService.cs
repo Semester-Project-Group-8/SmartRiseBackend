@@ -147,6 +147,13 @@ public class DeskService
             return false;
         }
 
+        if (!desk.DepartmentId.HasValue || desk.Minor == null || string.IsNullOrWhiteSpace(desk.ExternalDeskId))
+        {
+            _logger.LogWarning(
+                "Cannot assign desk '{DeskId}' because it is not fully configured.",
+                deskId);
+            return false;
+        }
         desk.EmployeeId = assignment.UserId;
         await _dbContext.SaveChangesAsync();
 
@@ -173,5 +180,49 @@ public class DeskService
 
         _logger.LogInformation("Unassigning desk '{DeskId}' from user '{UserId}'.", deskId, unassignment.UserId);
         return true;
+    }
+    public async Task<int> SyncDesksAsync()
+    {
+        var externalIds = await _deskClient.GetAllDeskIdsAsync();
+
+        if (externalIds == null)
+        {
+            return 0;
+        }
+
+        var existingDesks = await _dbContext.Desks.ToListAsync();
+        var createdCount = 0;
+
+        foreach (var externalId in externalIds)
+        {
+            if (string.IsNullOrWhiteSpace(externalId))
+            {
+                continue;
+            }
+
+            var exists = existingDesks.Any(d =>
+                d.ExternalDeskId == externalId);
+
+            if (exists)
+            {
+                continue;
+            }
+
+            _dbContext.Desks.Add(new Desk
+            {
+                Id = Guid.NewGuid(),
+                ExternalDeskId = externalId,
+                Minor = null,
+                DepartmentId = null,
+                EmployeeId = null,
+                PreferredHeight = 750,
+                CompanyHeight = 750
+            });
+
+            createdCount++;
+        }
+
+        await _dbContext.SaveChangesAsync();
+        return createdCount;
     }
 }
