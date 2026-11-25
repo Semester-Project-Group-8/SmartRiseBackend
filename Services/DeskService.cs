@@ -154,7 +154,6 @@ public class DeskService
                 deskId);
             return false;
         }
-
         desk.EmployeeId = assignment.UserId;
         await _dbContext.SaveChangesAsync();
 
@@ -182,7 +181,6 @@ public class DeskService
         _logger.LogInformation("Unassigning desk '{DeskId}' from user '{UserId}'.", deskId, unassignment.UserId);
         return true;
     }
-
     public async Task<int> SyncDesksAsync()
     {
         var externalIds = await _deskClient.GetAllDeskIdsAsync();
@@ -227,5 +225,4 @@ public class DeskService
         await _dbContext.SaveChangesAsync();
         return createdCount;
     }
-
 }
