@@ -41,6 +41,7 @@ namespace Backend.Database
                 entity.Property(e => e.Major).HasColumnName("major");
                 entity.Property(e => e.StartTime).HasColumnName("start_time");
                 entity.Property(e => e.EndTime).HasColumnName("end_time");
+                entity.Property(e => e.AdminId).HasColumnName("admin_id");
 
                 entity.HasMany(e => e.Desks)
                       .WithOne(e => e.Department)

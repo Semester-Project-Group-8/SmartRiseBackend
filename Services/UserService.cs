@@ -230,19 +230,11 @@ public class UserService
 
     public async Task<object?> GetDesk(Guid id)
     {
-        var user = await _context.Employees
-            .Include(e => e.Desk)
-            .ThenInclude(d => d.Department)
-            .FirstOrDefaultAsync(e => e.Id == id);
-
-        if (user?.Desk?.Department == null) return null;
-
-        var desk = new
-        {
-            user.Desk.Minor,
-            user.Desk.Department.Major
-        };
-
-        return desk;
+        // Project only the beacon fields so we don't load whole Employee/Desk/Department entities.
+        return await _context.Desks
+            .AsNoTracking()
+            .Where(d => d.EmployeeId == id && d.Department != null)
+            .Select(d => new { d.Minor, d.Department!.Major })
+            .FirstOrDefaultAsync();
     }
 }
