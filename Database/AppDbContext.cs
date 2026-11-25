@@ -75,7 +75,7 @@ namespace Backend.Database
             modelBuilder.Entity<Ticket>(entity =>
             {
                 entity.ToTable("ticket");
-                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("now()");
                 entity.Property(e => e.Title).HasColumnName("title");
                 entity.Property(e => e.Description_Text).HasColumnName("description_text");
                 entity.Property(e => e.ReportTime).HasColumnName("report_time").HasDefaultValueSql("gen_random_uuid()");
@@ -83,12 +83,12 @@ namespace Backend.Database
                 entity.Property(e => e.DeskId).HasColumnName("desk_id");
 
                 entity.HasOne(t => t.Employee)
-                      .WithOne(e => e.Ticket)
-                      .HasForeignKey<Ticket>(t => t.EmployeeId);
+                      .WithMany(e => e.Tickets)
+                      .HasForeignKey(t => t.EmployeeId);
 
                 entity.HasOne(t => t.Desk)
-                      .WithOne(d => d.Ticket)
-                      .HasForeignKey<Ticket>(t => t.DeskId);
+                      .WithMany(d => d.Tickets)
+                      .HasForeignKey(t => t.DeskId);
             });
 
             modelBuilder.Entity<WorksIn>(entity =>
