@@ -225,4 +225,46 @@ public class DeskService
         await _dbContext.SaveChangesAsync();
         return createdCount;
     }
+
+    public async Task<bool> UpdateDeskMinorMajorAsync(Guid deskId, Dictionary<string, int?> values)
+    {
+        var desk = await _dbContext.Desks
+            .FirstOrDefaultAsync(d => d.Id == deskId);
+
+        if (desk == null)
+        {
+            _logger.LogWarning("Desk '{DeskId}' not found for updating minor/major.", deskId);
+            return false;
+        }
+
+        if (values.TryGetValue("minor", out var minor))
+        {
+            desk.Minor = minor;
+        }
+
+        if (values.TryGetValue("major", out var major))
+        {
+            if (major.HasValue)
+            {
+                var department = await _dbContext.Departments
+                    .FirstOrDefaultAsync(d => d.Major == major.Value);
+
+                if (department == null)
+                {
+                    _logger.LogWarning("No department with major '{Major}' found.", major.Value);
+                    return false;
+                }
+
+                desk.DepartmentId = department.Id;
+            }
+            else
+            {
+                desk.DepartmentId = null;
+            }
+        }
+
+        await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("Updated desk '{DeskId}'.", deskId);
+        return true;
+    }
 }

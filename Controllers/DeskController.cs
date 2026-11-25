@@ -150,4 +150,32 @@ public class DeskController : ControllerBase
         var createdCount = await _deskService.SyncDesksAsync();
         return Ok(new { CreatedCount = createdCount });
     }
+
+    [HttpPatch("{deskId}/minor-major")]
+    public async Task<IActionResult> UpdateDeskMinorMajor(Guid deskId, [FromBody] Dictionary<string, int?> body)
+    {
+        if (body == null)
+        {
+            return BadRequest(new { Message = "Request body is required." });
+        }
+
+        if (body.TryGetValue("minor", out var minor) && minor.HasValue && minor.Value < 0)
+        {
+            return BadRequest(new { Message = "Minor value cannot be negative." });
+        }
+
+        if (body.TryGetValue("major", out var major) && major.HasValue && major.Value < 0)
+        {
+            return BadRequest(new { Message = "Major value cannot be negative." });
+        }
+
+        var result = await _deskService.UpdateDeskMinorMajorAsync(deskId, body);
+
+        if (!result)
+        {
+            return NotFound(new { Message = "Desk not found or no department with the specified major found." });
+        }
+
+        return Ok(new { Message = "Desk minor and department major updated successfully." });
+    }
 }
