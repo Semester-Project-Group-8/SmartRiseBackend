@@ -52,7 +52,7 @@ public class DeskController : ControllerBase
             return StatusCode(500, new { Message = "Failed" });
         }
 
-        return Ok(new { Message = $"Desk {state} successfully." });
+        return Ok(new { Message = "Desk height updated successfully." });
     }
 
     [HttpGet]
