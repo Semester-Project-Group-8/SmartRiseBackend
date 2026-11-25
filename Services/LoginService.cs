@@ -25,23 +25,25 @@ public class LoginService
 
     public async Task<string?> Login(LoginRequest request)
     {
-        Employee? employee = await _dbContext.Employees.FirstOrDefaultAsync(e => e.Email == request.UserMail);
         Admin? admin = await _dbContext.Admins.FirstOrDefaultAsync(a => a.Email == request.UserMail);
-        if ((employee != null && _passwordService.VerifyPassword(employee, employee.PasswordHash, request.Password)) || (admin != null && _passwordService.VerifyPassword(admin, admin.PasswordHash, request.Password)))
+        if (admin != null && _passwordService.VerifyPassword(admin, admin.PasswordHash, request.Password))
         {
-            _logger.LogInformation($"User {request.UserMail} logged in successfully.");
-            return GenerateJwtToken(request.UserMail);
+            _logger.LogInformation($"Admin {request.UserMail} logged in successfully.");
+            return GenerateJwtToken(request.UserMail, isAdmin: true);
         }
-        else if(employee==null && admin==null)
+
+        Employee? employee = await _dbContext.Employees.FirstOrDefaultAsync(e => e.Email == request.UserMail);
+        if (employee != null && _passwordService.VerifyPassword(employee, employee.PasswordHash, request.Password))
         {
-            _logger.LogWarning($"Login failed: User with email {request.UserMail} not found.");
-            return null;
+            _logger.LogInformation($"Employee {request.UserMail} logged in successfully.");
+            return GenerateJwtToken(request.UserMail, isAdmin: false);
         }
-        _logger.LogInformation($"User {request.UserMail} login failed.");
+
+        _logger.LogWarning($"Login failed: User with email {request.UserMail} not found or password incorrect.");
         return null;
     }
 
-    private string GenerateJwtToken(string email)
+    private string GenerateJwtToken(string email, bool isAdmin)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("TokenSecurityPasscode123456789_32chars")); 
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -49,7 +51,8 @@ public class LoginService
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Role, isAdmin ? "Admin" : "Employee")
         };
 
         var token = new JwtSecurityToken(
