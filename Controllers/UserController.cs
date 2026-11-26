@@ -119,15 +119,33 @@ public class UserController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/approve")]
-    public async Task<IActionResult> ApproveUser(Guid id)
+    public async Task<IActionResult> ApproveUser(Guid id, [FromBody] Approve approval)
     {
-        var success = await _userService.ApproveAsync(id);
-        if (!success)
+        if(approval.role=="admin")
         {
-            return NotFound(new { Message = "User not found." });
+            var success = await _userService.ApproveAdminAsync(id,approval.DepartmentIds);
+            if (!success)
+            {
+                return NotFound(new { Message = "AdminUser not found." });
+            }
         }
-
-        return Ok(new { Message = "User approved successfully." });
+        else if(approval.role=="cleaner" ||  approval.role=="default")
+        {
+            if(approval.deskId==null&&approval.DepartmentIds==null)
+            {
+                return BadRequest(new { Message = "User type requires more information." });
+            }
+            var success = await _userService.ApproveUserAsync(id,approval.deskId,approval.DepartmentIds);
+            if (!success)
+            {
+                return NotFound(new { Message = "User not found." });
+            }
+        }
+        else
+        {
+            return BadRequest(new { Message = "User type is invalid." });
+        }
+         return Ok(new { Message = "User approved successfully." });
     }
 
     [HttpPatch("{id:guid}/reject")]
@@ -173,4 +191,11 @@ public class Preset
     public bool PresetValue { get; set; } // True = sit || False = stand
     public double PresetHeight { get; set; }
 
+}
+
+public class Approve
+{
+    public string role { get; set; } = "";
+    public Guid? deskId { get; set; }
+    public List<Guid>? DepartmentIds { get; set; }
 }

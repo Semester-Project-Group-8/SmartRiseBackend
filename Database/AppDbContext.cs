@@ -45,6 +45,8 @@ namespace Backend.Database
                 entity.HasMany(e => e.Desks)
                       .WithOne(e => e.Department)
                       .HasForeignKey(e => e.DepartmentId);
+                entity.Property(e => e.AdminId)
+                      .HasColumnName("admin_id");
             });
             modelBuilder.Entity<Employee>(entity =>
             {

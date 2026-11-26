@@ -20,6 +20,7 @@ builder.Services.AddScoped<DeskService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<DepartmentService>();
 builder.Services.AddHttpClient<Backend.Clients.DeskClient>();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 

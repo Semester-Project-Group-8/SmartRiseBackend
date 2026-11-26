@@ -141,15 +141,83 @@ public class UserService
         return true;
     }
 
-    public async Task<bool> ApproveAsync(Guid id)
+    public async Task<bool> ApproveUserAsync(Guid id,Guid? deskGuid,List<Guid>? departmentGuids)
     {
         var employee = await _context.Employees.FindAsync(id);
         if (employee == null) return false;
-
         employee.AccountStatus = "active";
+        if(deskGuid!=null)
+        {
+            employee.Role = "default";
+            var desk= await _context.Desks.FindAsync(deskGuid);
+            if (desk == null)
+            {
+                _logger.LogInformation("Desk -  {deskGuid} - not found.", deskGuid);
+                return false;
+            }
+            desk.EmployeeId = employee.Id;
+        }
+        else if(departmentGuids!=null) 
+        {
+            employee.Role = "cleaner";
+
+            foreach(var departmentId in departmentGuids)
+            {
+                var department = await _context.Departments.FindAsync(departmentId);
+                if(department == null)
+                {
+                    _logger.LogInformation("Department -  {departmentId} - not found." , departmentId);
+                    return false;
+                }    
+                employee.WorksIn.Add(new WorksIn
+                {
+                    EmployeeId = employee.Id,
+                    DepartmentId = department.Id,
+                    StartTime = department.StartTime.AddHours(-2),
+                    EndTime=department.StartTime.AddHours(-1)
+                });
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Missing user information.");
+            return false;
+        }
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Approved user {Id}", id);
+        return true;
+    }
+    public async Task<bool> ApproveAdminAsync(Guid id,List<Guid>? departmentGuids)
+    {
+        var employee = await _context.Employees.FindAsync(id);
+        if (employee == null || departmentGuids==null) return false;
+
+        Admin admin = new Admin
+        {
+            Name=employee.Name,
+            PasswordHash=employee.PasswordHash,
+            DateOfBirth=employee.DateOfBirth,
+            Email=employee.Email,
+        };
+
+        _context.Admins.Add(admin);
+
+        foreach (var departmentId in departmentGuids)
+        {
+            var department = await _context.Departments.FindAsync(departmentId);
+            if (department == null)
+            {
+                _logger.LogInformation("Department -  {departmentId} - not found.", departmentId);
+                return false;
+            }
+            department.Admin = admin;
+        }
+
+        _context.Employees.Remove(employee);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Approved superuser {Id}", id);
         return true;
     }
 
